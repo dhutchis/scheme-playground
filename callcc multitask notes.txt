@@ -1,0 +1,24 @@
+This weekend I felt inspired to learn about some higher elements of functional programming.  Browsing some of the tutorials here http://www.shido.info/lisp/scheme_cc_e.html, I chose to learn about continuations and coroutines! (Further research yielded this http://community.schemewiki.org/?call-with-current-continuation tutorial, which I found much more useful in learning continuations.)
+call/cc (call-with-current-continuation) is a sort of goto in Scheme.  Here's a brief example:
+
+(define (funcA)
+	(stmtA)
+	(call/cc funcB)
+	(stmtB)
+)
+(define (funcB cc-arg)
+	(stmtC)
+	(cc-arg ret-val)
+	(stmtD)
+)
+(funcA)
+
+The order of execution is
+stmtA
+stmtC
+ret-val
+stmtB
+
+The key here is that when cc-arg, the value passed to funcB (the argument of call/cc in funcA), is executed with parameter ret-val, it dumps the current context inside funcB and restores the context to the point call/cc was called.  stmtD is never called.  
+This may bring evil memories of "goto" abuses, and it rightfully should.  Careless use of call/cc will make a program unreadable.  But it still had its place wherever non-local jumps are appropriate, such as to break out of a deep nest of loops or to jump to the middle of another function.
+I felt inspired to make a kind of non-preemptive scheduler using the call/cc paradigm.  Here it is!
